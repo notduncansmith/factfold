@@ -18,13 +18,13 @@ In the future, by providing debugging/backup/recovery utilities, we can develop 
 
 Critically, the above should be available without having to operate 3+ services (Zookeeper, Kafka, some database, some K/V cache, etc) in addition to one's actual application. Most of the value of this architecture is not the increased volume or speed of data processing capable, but the decreased complexity in the description/operation/evolution of the processing while maintaining competitive performance.
 
-## How
+## Terms
 
-Facts are immutable observations about the world. These are roughly analogous to paper notes or documents.
+*Facts* are immutable observations about the world. These are roughly analogous to paper notes or documents. They are represented as Clojure maps of arbitrary depth.
 
-Cases are collections of related facts that can be reasoned about independently. These are roughly analogous to "files" as popularly portrayed (manilla folders full of related notes/documents).
+*Cases* are collections of related facts that can be reasoned about independently. These are roughly analogous to "files" as popularly portrayed (manilla folders full of related notes/documents).
 
-Models are collections of related properties that can be derived from the facts of a given case. These properties can also be derived from each other, but only in one direction. Models are specified as dependency ordered arrays of maps, each of which pairs keyword property names with functions to compute their values.
+*Models* are collections of related properties that can be derived from the facts of a given case. These properties can also be derived from each other, but only in one direction. Models are specified as dependency ordered arrays of maps, each of which pairs keyword property names with functions to compute their values.
 
 ## Usage
 
