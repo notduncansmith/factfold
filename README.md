@@ -36,5 +36,6 @@ The general production service workflow:
 3. Incrementally update case states with new facts as available
 4. Query resulting state
 
+See an example of model execution in the test directory.
 
 Copyright Duncan Smith 2017
