@@ -1,6 +1,6 @@
 (ns factfold.model
   (:require
-    [factfold.util :refer [filter-kv coalesce]]))
+    [factfold.util :refer [filter-kv]]))
 
 (defn new-values-for-properties
   "Given a property map (a map of property keys to the functions that compute the values of those keys), a case state, and a new fact, compute any changed property values by reducing the list of facts with the property fn, starting from the current value of that property. Returns a sparse map of updated properties."
@@ -34,6 +34,6 @@
   "Generate a property function to return either the last received value for a key, or the updated value given by the current fact"
   [property-key]
   (fn [case-values fact]
-    (or
+    (or ; should find a cleaner first-non-nil method
       (fact property-key)
       (case-values property-key))))
