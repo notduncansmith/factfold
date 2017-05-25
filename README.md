@@ -24,7 +24,7 @@ Critically, the above should be available without having to operate 3+ services 
 
 *Cases* are collections of related facts that can be reasoned about independently. These are roughly analogous to "files" as popularly portrayed (manilla folders full of related notes/documents).
 
-*Models* are collections of related properties that can be derived from the facts of a given case. These properties can also be derived from each other, but only in one direction. Models are specified as dependency ordered arrays of maps, each of which pairs keyword property names with functions to compute their values.
+*Models* are collections of related properties that can be derived from the facts of a given case. These properties can also be derived from each other, but only in one direction. Models are specified as dependency ordered arrays of *property maps*, each of which pairs keyword property names with functions to compute their values. The result of applying a model to a list of facts is a map of computed property values.
 
 ## Usage
 
