@@ -33,7 +33,7 @@
 (defn latest-value
   "Generate a property function to return either the last received value for a key, or the updated value given by the current fact"
   [property-key]
-  (fn [case fact]
+  (fn [case-values fact]
     (or
       (fact property-key)
-      (case property-key))))
+      (case-values property-key))))
