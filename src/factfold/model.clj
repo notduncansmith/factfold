@@ -3,7 +3,7 @@
     [factfold.util :refer [filter-kv]]))
 
 (defn new-values-for-properties
-  "Given a property map (a map of property keys to the functions that compute the values of those keys), a case state, and a new fact, compute any changed property values by reducing the list of facts with the property fn, starting from the current value of that property. Returns a sparse map of updated properties."
+  "Given a property map (a map of property keys to the functions that compute the values of those keys), a case state, and a new fact, compute any changed property values by reducing the list of facts with the property fn, starting from the current value of that property. Returns an up-to-date map of updated properties."
   [property-map current-case-values fact]
   (reduce-kv
     (fn [updated-property-values property-label property-fn]
