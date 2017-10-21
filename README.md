@@ -2,40 +2,61 @@
 
 Factfold is a Clojure library that provides facilities for describing and executing dependent computation graphs.
 
+The most succinct explanation is that it is a realization of the [third Futamura projection](http://blog.sigfpe.com/2009/05/three-projections-of-doctor-futamura.html).
+
 Specifically, it:
 
 1. Turns a dataflow DAG into a fold function
-2. Executes this fold function continuously over a dynamic collection of parallel input streams
+2. Executes this fold function continuously an input stream
 3. Continuously groups and filters these fold results
 
 ## Why does this exist
 
-Most programs can now be performantly implemented with the fold-over-immutable-log architecture, meaning all we need from the programmer is the fold function.
+Computers are fast enough that in most cases, simply choosing close-enough-to-optimal data structures will result in close-enough-to-optimal performance. **All** data structures (i.e. all programs) [can be specified](http://www.cs.nott.ac.uk/~pszgmh/fold.pdf) in terms of a fold function.
 
-Factfold makes it both simpler and easier to specify this fold function and be confident in its correctness, by breaking it down into labeled dependent steps.
+Factfold makes it both simpler and easier to specify this fold function and be confident in its correctness, by breaking it down into labeled, as-ordered-as-necessary steps. Think of it like Excel, but more structured. These fold function specifications are called "models".
 
-In the future, by providing debugging/backup/recovery utilities, we can develop and deploy robust production applications while concerning our application code almost exclusively with the domain.
+This allows for rapidly developing interactive applications which can run efficiently on a huge number of targets out of the box (right now JVM and browsers with Clojure, but this implementation would be trivial to reproduce in other environments).
 
-Critically, the above should be available without having to operate 3+ services (Zookeeper, Kafka, some database, some K/V cache, etc) in addition to one's actual application. Most of the value of this architecture is not the increased volume or speed of data processing capable, but the decreased complexity in the description/operation/evolution of the processing while maintaining competitive performance.
+Here's an example which iterates a given point through the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) function:
 
-## Terms
+```clj
+(defn brot
+  [ctx]
+  (factfold.model/apply-model
+    [ {:c (fn [state input] (state :c))}
+      {:z (fn [{:keys [c z]} _] (+ (* z z) c))}]
+      ctx
+      [{}]))
 
-*Facts* are immutable observations about the world. These are roughly analogous to paper notes or documents. They are represented as Clojure maps of arbitrary depth.
+user=> (brot {:z 0 :c 0.23})
+{:z 0.23, :c 0.23}
 
-*Cases* are collections of related facts that can be reasoned about independently. These are roughly analogous to "files" as popularly portrayed (manilla folders full of related notes/documents).
+user=> (brot (brot {:z 0 :c 0.23}))
+{:z 0.28290000000000004, :c 0.23}
+```
 
-*Models* are collections of related properties that can be derived from the facts of a given case. These properties can also be derived from each other, but only in one direction. Models are specified as dependency ordered arrays of *property maps*, each of which pairs keyword property names with functions to compute their values. The result of applying a model to a list of facts is a map of computed property values.
+In this case, the model has 2 orders: the first order properties, of which there is one, `:c`; and the second order properties, of which there is also one, `:z`. It also iterates purely based on its initial state, no input is required (as opposed to web servers, mobile apps, games, etc).
 
-## Usage
+Here's a more interactive example, a web application which tracks hits to unique paths:
 
-The general production service workflow:
+```clj
+(def app-state (atom {}))
 
-0. Define models as dataflow DAGs
-1. Load cases from your storage mechanism of choice.
-2. Execute models against facts from each case
-3. Incrementally update case states with new facts as available
-4. Query resulting state
+(def model
+  [{:counts (fn [{:keys [counts]} {:keys [path]}]
+              (update counts path #(if % (inc %) 0)))}])
 
-See an example of model execution in the test directory.
+(defn process-request!
+  [request]
+  (swap! app-state #(factfold.model/apply-model model % [request])))
+
+user=> (process-request! {:path "/foo"})
+{:counts {"/foo" 0}}
+user=> (process-request! {:path "/foo"})
+{:counts {"/foo" 1}}
+```
+
+Hopefully it's easy to imagine how more complex applications might evolve.
 
 Copyright Duncan Smith 2017

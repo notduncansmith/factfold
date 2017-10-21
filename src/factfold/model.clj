@@ -32,8 +32,10 @@
 
 (defn latest-value
   "Generate a property function to return either the last received value for a key, or the updated value given by the current fact"
-  [property-key]
-  (fn [case-values fact]
-    (or ; should find a cleaner first-non-nil method
-      (fact property-key)
-      (case-values property-key))))
+  ( [property-key] (latest-value property-key nil))
+  ( [property-key final-value]
+    (fn [case-values fact]
+      (or ; should find a cleaner first-non-nil method
+        (fact property-key)
+        (case-values property-key)
+        final-value))))
