@@ -26,8 +26,8 @@ Here's an example which iterates a given point through the [Mandelbrot set](http
   (factfold.model/apply-model
     [ {:c (fn [state input] (state :c))}
       {:z (fn [{:keys [c z]} _] (+ (* z z) c))}]
-      ctx
-      [{}]))
+    ctx
+    [{}]))
 
 user=> (brot {:z 0 :c 0.23})
 {:z 0.23, :c 0.23}
@@ -36,7 +36,7 @@ user=> (brot (brot {:z 0 :c 0.23}))
 {:z 0.28290000000000004, :c 0.23}
 ```
 
-In this case, the model has 2 orders: the first order properties, of which there is one, `:c`; and the second order properties, of which there is also one, `:z`. It also iterates purely based on its initial state, no input is required (as opposed to web servers, mobile apps, games, etc).
+In this case, the model has 2 orders: the first order properties, of which there is one, `:c`; and the second order properties, of which there is also one, `:z`. It also iterates purely based on its initial state, no input is required.
 
 Here's a more interactive example, a web application which tracks hits to unique paths:
 
@@ -44,8 +44,8 @@ Here's a more interactive example, a web application which tracks hits to unique
 (def app-state (atom {}))
 
 (def model
-  [{:counts (fn [{:keys [counts]} {:keys [path]}]
-              (update counts path #(if % (inc %) 0)))}])
+  [{:counts (fn [state request]
+              (update (state :counts) (request :path) #(if % (inc %) 0)))}])
 
 (defn process-request!
   [request]
@@ -57,6 +57,8 @@ user=> (process-request! {:path "/foo"})
 {:counts {"/foo" 1}}
 ```
 
-Hopefully it's easy to imagine how more complex applications might evolve.
+## Notes
+
+This is a little less magical than Plumatic's excellent [plumbing](https://github.com/plumatic/plumbing) library. I think that `fnk` is a great usability affordance for many use cases, but for my own I wanted something with a simpler design, and decoupled from dependency resolution. While this library can be used for data modeling on its own, my end goal is something with a UI that will feed into an engine using this library. Feel free to email me more about this if you're interested: github@dms.sh
 
 Copyright Duncan Smith 2017
