@@ -2,8 +2,6 @@
 
 Factfold is a Clojure library that provides facilities for describing and executing dependent computation graphs.
 
-The most succinct explanation is that it is a realization of the [third Futamura projection](http://blog.sigfpe.com/2009/05/three-projections-of-doctor-futamura.html).
-
 Specifically, it:
 
 1. Turns a dataflow DAG into a fold function
