@@ -1,8 +1,5 @@
 (ns factfold.util)
 
-(defn now []
-  (System/currentTimeMillis))
-
 (defn map-kv
   "Apply f to each kv pair in m"
   [f m]
