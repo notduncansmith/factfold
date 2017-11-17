@@ -1,5 +1,7 @@
 # Factfold - Orchestral programming
 
+[![Clojars Project](https://img.shields.io/clojars/v/factfold.svg)](https://clojars.org/factfold)
+
 Factfold is a library that makes it easier to write maintainable software by providing a flexible interface to data structure composition.
 
 It's also an interpreter, in-memory database, complex event processor, rules/inference engine, computer algebra system, or monadic application state framework, depending on your persuasion. This is but one take on many old ideas.
