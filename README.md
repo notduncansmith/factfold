@@ -1,42 +1,48 @@
-# Factfold - A dead-simple complex computation engine
+# Factfold - Orchestral programming
 
-Factfold is an interpreter-interpreter that simplifies the incremental construction of higher-order software models by representing them as Clojure data structures and functions.
+Factfold is a library that makes it easier to write maintainable software by providing a flexible interface to data structure composition.
 
-It's also an in-memory database, a [complex event processing](https://en.wikipedia.org/wiki/Complex_event_processing) engine, or a "[forward-chaining](https://en.wikipedia.org/wiki/Forward_chaining)" [rules](https://en.wikipedia.org/wiki/Business_rules_engine)/[inference engine](https://en.wikipedia.org/wiki/Inference_engine) depending on your persuasion.
+It's also an interpreter, in-memory database, complex event processor, rules/inference engine, computer algebra system, or monadic application state framework, depending on your persuasion. This is but one take on many old ideas.
 
-It is suitable for describing logical relationships between events/objects/facts/records. It is also suitable for describing the one-way graph of data structures in a well-designed program, and the concurrent maintenance of independent state trees in multi-user environments.
+## Rationale
 
-## Why does this exist
+Clojure is an excellent tool for developing software components and systems by hand. By adding a thin layer of homogeneity and structure to these components, we gain the ability to develop systems by machine. Where macros enable metaprogramming, Factfold enables metacomputing.
 
-Most software development comes down to choosing the right data structures. Configuring and connecting these data structures is a relatively high-level type of programming, but we still do it with lower-level tools.
+If we can programmatically assemble not just programs but systems of programs, we can navigate the full component granularity spectrum from within a single programming environment.
 
-This library abstracts away the lower-level concerns of connecting data structures together, and offers a layer of declarative composability on top of Clojure code.
+## How does it work
 
-By representing software processes as data, we jump from metaprogramming to metacomputing.
+For the Clojure-savvy, see the [adorably tiny implementation](src/factfold/core.cljc).
+
+Factfold processes data by applying **models** (logically-ordered vectors of property label/formula maps) to **facts** (discrete input data). Models can be nested arbitrarily.
 
 ## Examples
 
 Here's a simple model which encodes the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) point value formula:
 
 ```clj
-(require '[factfold.model :as model])
+(require '[factfold.core :refer [evaluate]])
 
 (defn brot
   [ctx]
-  (model/evaluate-model
-    [ {:c (fn [state _] (state :c))}
-      {:z (fn [{:keys [c z]} _] (+ (* z z) c))}]
+  (evaluate
+    [ {:c (fn [state _] (state :c)) ; first property, :c, is given and remains the same
+       :n (fn [state _] (inc (or (state :n) 0)))} ; second property, :n, increases each run
+      {:z (fn [{:keys [c z]} _] (+ (* z z) c))}] ; third property, :z, is second-order and depends upon c
     ctx
     nil))
 
-user=> (brot {:z 0 :c 0.23})
-{:z 0.23, :c 0.23}
+(brot {:z 0 :c 0.23}) ; {:z 0.23, :c 0.23 :n 1}
+(brot (brot {:z 0 :c 0.23 :n 1})) ; {:z 0.28290000000000004, :c 0.23 :n 2}
 
-user=> (brot (brot {:z 0 :c 0.23}))
-{:z 0.28290000000000004, :c 0.23}
+(defn mandelbrot-value
+  "Return the number of iterations a value takes to escape"
+  [c escape]
+  (loop [ctx (brot {:z 0 :c c :n 0})]
+    (if (escape ctx) (state :n) (recur (brot ctx)))))
+
+(mandelbrot-value 0.23 #(or (> (state :z) 2) (> (state :n) 10000)))
 ```
-
-In this case, the model has 2 orders: the first order properties, of which there is one, `:c`; and the second order properties, of which there is also one, `:z`. It also iterates purely based on its initial state, no input is required.
 
 For a more interactive example, consider a web application which tracks hits to unique paths. The state is modeled here:
 
@@ -56,6 +62,25 @@ user=> (process-request! {:path "/foo"})
 user=> (process-request! {:path "/foo"})
 {:counts {"/foo" 1}}
 ```
+
+## Related / Prior Art
+
+- [Petri nets](https://en.wikipedia.org/wiki/Petri_net)
+
+- [Tree transducers](https://en.wikipedia.org/wiki/Tree_transducer)
+
+- [Sequent calculus](https://en.wikipedia.org/wiki/Sequent_calculus)
+
+- [Computer algebra systems](https://en.wikipedia.org/wiki/List_of_computer_algebra_systems)
+
+- [Functional reactive programming](https://en.wikipedia.org/wiki/Functional_reactive_programming)
+
+- [Rete algorithm](https://en.wikipedia.org/wiki/Rete_algorithm)
+
+- [Plant (control theory)](https://en.wikipedia.org/wiki/Plant_(control_theory))
+
+- [Truth maintenance systems](https://en.wikipedia.org/wiki/Reason_maintenance)
+
 
 ## License
 
