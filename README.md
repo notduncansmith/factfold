@@ -67,6 +67,8 @@ user=> (process-request! {:path "/foo"})
 
 - [Petri nets](https://en.wikipedia.org/wiki/Petri_net)
 
+- [Futamura_projections](https://en.wikipedia.org/wiki/Partial_evaluation#Futamura_projections)
+
 - [Tree transducers](https://en.wikipedia.org/wiki/Tree_transducer)
 
 - [Sequent calculus](https://en.wikipedia.org/wiki/Sequent_calculus)
