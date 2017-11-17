@@ -1,4 +1,4 @@
-(defproject factfold "0.2.0"
+(defproject factfold "0.3.0"
   :description "A simple complex computation engine"
   :url "https://github.com/notduncansmith/factfold"
   :license {:name "Eclipse Public License"
