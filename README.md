@@ -1,31 +1,33 @@
-# Factfold
+# Factfold - A dead-simple complex computation engine
 
-Factfold is a Clojure library that provides facilities for describing and executing dependent computation graphs.
+Factfold is an interpreter-interpreter that simplifies the incremental construction of higher-order software models by representing them as Clojure data structures and functions.
 
-Specifically, it:
+It's also an in-memory database, a [complex event processing](https://en.wikipedia.org/wiki/Complex_event_processing) engine, or a "[forward-chaining](https://en.wikipedia.org/wiki/Forward_chaining)" [rules](https://en.wikipedia.org/wiki/Business_rules_engine)/[inference engine](https://en.wikipedia.org/wiki/Inference_engine) depending on your persuasion.
 
-1. Turns a dataflow DAG into a fold function
-2. Executes this fold function continuously an input stream
-3. Continuously groups and filters these fold results
+It is suitable for describing logical relationships between events/objects/facts/records. It is also suitable for describing the one-way graph of data structures in a well-designed program, and the concurrent maintenance of independent state trees in multi-user environments.
 
 ## Why does this exist
 
-Computers are fast enough that in most cases, simply choosing close-enough-to-optimal data structures will result in close-enough-to-optimal performance. **All** data structures (i.e. all programs) [can be specified](http://www.cs.nott.ac.uk/~pszgmh/fold.pdf) in terms of a fold function.
+Most software development comes down to choosing the right data structures. Configuring and connecting these data structures is a relatively high-level type of programming, but we still do it with lower-level tools.
 
-Factfold makes it both simpler and easier to specify this fold function and be confident in its correctness, by breaking it down into labeled, as-ordered-as-necessary steps. Think of it like Excel, but more structured. These fold function specifications are called "models".
+This library abstracts away the lower-level concerns of connecting data structures together, and offers a layer of declarative composability on top of Clojure code.
 
-This allows for rapidly developing interactive applications which can run efficiently on a huge number of targets out of the box (right now JVM and browsers with Clojure, but this implementation would be trivial to reproduce in other environments).
+By representing software processes as data, we jump from metaprogramming to metacomputing.
 
-Here's an example which iterates a given point through the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) function:
+## Examples
+
+Here's a simple model which encodes the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) point value formula:
 
 ```clj
+(require '[factfold.model :as model])
+
 (defn brot
   [ctx]
-  (factfold.model/apply-model
-    [ {:c (fn [state input] (state :c))}
+  (model/evaluate-model
+    [ {:c (fn [state _] (state :c))}
       {:z (fn [{:keys [c z]} _] (+ (* z z) c))}]
     ctx
-    [{}]))
+    nil))
 
 user=> (brot {:z 0 :c 0.23})
 {:z 0.23, :c 0.23}
@@ -36,18 +38,18 @@ user=> (brot (brot {:z 0 :c 0.23}))
 
 In this case, the model has 2 orders: the first order properties, of which there is one, `:c`; and the second order properties, of which there is also one, `:z`. It also iterates purely based on its initial state, no input is required.
 
-Here's a more interactive example, a web application which tracks hits to unique paths:
+For a more interactive example, consider a web application which tracks hits to unique paths. The state is modeled here:
 
 ```clj
-(def app-state (atom {}))
+(require '[factfold.core :refer [advance!]])
 
 (def model
-  [{:counts (fn [state request]
-              (update (state :counts) (request :path) #(if % (inc %) 0)))}])
+  [{:path-counts
+    (fn [state req]
+      (update (state :path-counts) (req :path) #(inc (or % 0))))}])
 
-(defn process-request!
-  [request]
-  (swap! app-state #(factfold.model/apply-model model % [request])))
+(def app-state (atom {:path-counts {}}))
+(defn process-request! [req] (advance! app-state model req))
 
 user=> (process-request! {:path "/foo"})
 {:counts {"/foo" 0}}
@@ -55,8 +57,8 @@ user=> (process-request! {:path "/foo"})
 {:counts {"/foo" 1}}
 ```
 
-## Notes
+## License
 
-This is a little less magical than Plumatic's excellent [plumbing](https://github.com/plumatic/plumbing) library. I think that `fnk` is a great usability affordance for many use cases, but for my own I wanted something with a simpler design, and decoupled from dependency resolution. While this library can be used for data modeling on its own, my end goal is something with a UI that will feed into an engine using this library. Feel free to email me more about this if you're interested: github@dms.sh
+Licensed under the Eclipse Public License, same as Clojure.
 
 Copyright Duncan Smith 2017

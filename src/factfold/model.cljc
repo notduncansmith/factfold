@@ -1,41 +1,38 @@
-(ns factfold.model
-  (:require
-    [factfold.util :refer [filter-kv]]))
+(ns factfold.model)
 
-(defn new-values-for-properties
-  "Given a property map (a map of property keys to the functions that compute the values of those keys), a case state, and a new fact, compute any changed property values by reducing the list of facts with the property fn, starting from the current value of that property. Returns an up-to-date map of updated properties."
-  [property-map current-case-values fact]
+(defn evaluate-properties
+  "Given a property map, their current values, and a new fact, compute their new values."
+  [property-map current-values fact]
   (reduce-kv
-    (fn [updated-property-values property-label property-fn]
-      (let [result (property-fn updated-property-values fact)
-            starting-value (current-case-values property-label)]
-        (if (not= result starting-value)
-          (assoc updated-property-values property-label result)
-          updated-property-values)))
-    current-case-values
+    (fn [new-values property-label property-formula]
+      (assoc new-values property-label
+        (if (= (type property-formula) clojure.lang.PersistentVector)
+          (evaluate-model property-formula new-values fact)
+          (property-formula new-values fact))))
+    current-values
     property-map))
 
+(defn evaluate-model
+  "Given a model, a state, and a new fact, return the model's next state."
+  [model current-values fact]
+  (reduce #(merge % (evaluate-properties %2 % fact)) current-values model))
+
 (defn apply-model
-  "Given a model (dependency-ordered array of property maps), a case, and a list of facts (oldest-first), compute the new `:values` for the case. Application of a model to a list of facts is a fold of single-fact application over the list. Fact application is a fold of recomputation of the model's property maps."
-  [model current-case-values facts]
-  (if (empty? facts)
-    current-case-values
-    (reduce
-      (fn [case-values fact]
-        (reduce
-          (fn [m property-map]
-            (merge m (new-values-for-properties property-map m fact)))
-          case-values
-          model))
-      current-case-values
-      facts)))
+  "Deprecated in favor the less-complected `evaluate-model`. Reduces a discrete sequence of facts into an end model state."
+  [model current-values facts]
+  (reduce #(evaluate-model model %2 %) current-values facts))
+
+; helpers, not enough to need their own namespace yet
 
 (defn latest-value
   "Generate a property function to return either the last received value for a key, or the updated value given by the current fact"
   ( [property-key] (latest-value property-key nil))
-  ( [property-key final-value]
+  ( [property-key default-value]
     (fn [case-values fact]
       (or ; should find a cleaner first-non-nil method
         (fact property-key)
         (case-values property-key)
-        final-value))))
+        default-value))))
+
+(defn constant [value] (fn [state fact] value))
+(defn in-state [p] (get-in state p))
