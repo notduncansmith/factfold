@@ -1,4 +1,4 @@
-# Factfold - Flexible and correctness-prone process composition
+# Factfold
 
 [![Clojars Project](https://img.shields.io/clojars/v/factfold.svg)](https://clojars.org/factfold)
 
