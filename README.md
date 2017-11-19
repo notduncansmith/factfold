@@ -3,6 +3,7 @@
 [![Clojars Project](https://img.shields.io/clojars/v/factfold.svg)](https://clojars.org/factfold)
 
 > The utility of a language as a tool of thought increases with the range of topics it can treat, but decreases with the amount of vocabulary and the complexity of grammatical rules which the user must keep in mind. Economy of notation is therefore important.
+>
 > Kenneth E. Iverson, 1979
 
 Factfold is a code orchestration library that makes it easier to write maintainable software.
