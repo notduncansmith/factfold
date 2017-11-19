@@ -1,26 +1,45 @@
-# Factfold - Orchestral programming
+# Factfold - Flexible and correctness-prone process composition
 
 [![Clojars Project](https://img.shields.io/clojars/v/factfold.svg)](https://clojars.org/factfold)
 
-Factfold is a library that makes it easier to write maintainable software by providing a flexible interface to data structure composition.
+> The utility of a language as a tool of thought increases with the range of topics it can treat, but decreases with the amount of vocabulary and the complexity of grammatical rules which the user must keep in mind. Economy of notation is therefore important.
+> Kenneth E. Iverson, 1979
 
-It's also an interpreter, in-memory database, complex event processor, rules/inference engine, computer algebra system, or monadic application state framework, depending on your persuasion. This is but one take on many old ideas.
+Factfold is a code orchestration library that makes it easier to write maintainable software.
+
+It's also an embedded database, complex event processor, rules/inference engine, computer algebra system, monadic application state container, computational modeling layer, virtual universal Turing machine, or simply "interpreter", depending on your persuasion.
 
 ## Rationale
 
-Clojure is an excellent tool for developing software components and systems by hand. By adding a thin layer of homogeneity and structure to these components, we gain the ability to develop systems by machine. Where macros enable metaprogramming, Factfold enables metacomputing.
+All programs are interpreters, and thus all programming is some level of metaprogramming. This hints at an extreme degree of [redundancy](https://en.wikipedia.org/wiki/Greenspun's_tenth_rule) in the practice of software development, turning tweet-sized concepts into pages of code.
 
-If we can programmatically assemble not just programs but systems of programs, we can navigate the full component granularity spectrum from within a single programming environment.
+This project is an attempt to alleviate some of this redundancy. It is a **hosted interpreter** which, rather than taking strings as input, evaluates host data structures which describe in a flexibly executable way the structure of complex programs in the host language. In effect, it is a portable and disposable metaprogramming environment that discourages logic errors by design.
+
+Lisps demonstrate the power of treating code and its evaluation as data, born of the need to elegantly express complicated things to a machine. Most programmers will never use a Lisp, but that oughtn't be an excuse for producing bloated code. Inspired by the tools that made humbling levels of complexity managable, Factfold aims to make anything less complex absolutely trivial. The hope is that this [rather small reference implementation](src/factfold/core.cljc) will inspire ports (like [this](https://github.com/notduncansmith/factjs) pure-Javascript one), and that we may see some standardization of **higher-order software models**.
+
+Complex programs are those with multiple data structures who derive their values from each other, aka concurrent [random access machines](https://en.wikipedia.org/wiki/Random-access_machine). In complex programs today, the instructions for these heterogeneous machines are blended together into a mess of indirect access, leading to unnecessarily long seek times at best and tedious-to-debug errors on average.
+
+Factfold encourages you to separate and name these concurrent subprocesses (with clear relationships and no shared responsibilities), leading to less "essay" code and more "well-groomed Wikipedia entry" code - navigably structured, recursively skimmable, appropriately hyperlinked, and thus instantly accessible to anyone who can read.
 
 ## How does it work
 
-For the Clojure-savvy, see the [adorably tiny implementation](src/factfold/core.cljc).
+Factfold processes data by applying **models** to **facts**† in chronological order. Models associate **property** names with functions to compute their values. Grouping model properties into **orders** makes their logical dependencies clear to human readers, and provides a natural concurrency barrier. Each property's value is computed from a snapshot of the current state and a new datum.
 
-Factfold processes data by applying **models** (logically-ordered vectors of property label/formula maps) to **facts** (discrete input data). Models can be nested arbitrarily.
+Thanks to Clojure's efficient immutable data structures, we can maintain as many copies of the state as there are properties to compute while only storing the changes they make.
 
-## Examples
+† Feel free to substitute "applying models to facts" with "calculating views of documents", "dispatching messages to actors/objects/processes", "executing instructions on a thread", "handling events", "updating relations with records", etc.
 
-Here's a simple model which encodes the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) point value formula:
+## Enough talk! Show me examples!
+
+This model's single first-order property, `:subject`, has a constant value of `"world"`. The model also has a second-order property, `:greeting`, which depends on `:subject`.
+
+```clj
+(def model
+  [{:subject (fn [state fact] "world")}
+   {:greeting (fn [s f] (str "hello " (or (f :subject) (s :subject)) "!"))}])
+```
+
+This model encodes the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) function:
 
 ```clj
 (require '[factfold.core :refer [evaluate]])
@@ -32,7 +51,7 @@ Here's a simple model which encodes the [Mandelbrot set](https://en.wikipedia.or
        :n (fn [state _] (inc (or (state :n) 0)))} ; second property, :n, increases each run
       {:z (fn [{:keys [c z]} _] (+ (* z z) c))}] ; third property, :z, is second-order and depends upon c
     ctx
-    nil))
+    nil)) ; ε if you're fancy
 
 (brot {:z 0 :c 0.23}) ; {:z 0.23, :c 0.23 :n 1}
 (brot (brot {:z 0 :c 0.23 :n 1})) ; {:z 0.28290000000000004, :c 0.23 :n 2}
@@ -41,12 +60,13 @@ Here's a simple model which encodes the [Mandelbrot set](https://en.wikipedia.or
   "Return the number of iterations a value takes to escape"
   [c escape]
   (loop [ctx (brot {:z 0 :c c :n 0})]
-    (if (escape ctx) (state :n) (recur (brot ctx)))))
+    (if (escape ctx) (ctx :n) (recur (brot ctx)))))
 
-(mandelbrot-value 0.23 #(or (> (state :z) 2) (> (state :n) 10000)))
+(mandelbrot-value 0.23 #(or (> (% :z) 2) (> (% :n) 10000))) ; 10001
+(mandelbrot-value 0.26 #(or (> (% :z) 2) (> (% :n) 10000))) ; 30
 ```
 
-For a more interactive example, consider a web application which tracks hits to unique paths. The state is modeled here:
+Consider a web application which tracks hits to unique paths. The state is managed here:
 
 ```clj
 (require '[factfold.core :refer [advance!]])
@@ -65,26 +85,7 @@ user=> (process-request! {:path "/foo"})
 {:counts {"/foo" 1}}
 ```
 
-## Related / Prior Art
-
-- [Petri nets](https://en.wikipedia.org/wiki/Petri_net)
-
-- [Futamura_projections](https://en.wikipedia.org/wiki/Partial_evaluation#Futamura_projections)
-
-- [Tree transducers](https://en.wikipedia.org/wiki/Tree_transducer)
-
-- [Sequent calculus](https://en.wikipedia.org/wiki/Sequent_calculus)
-
-- [Computer algebra systems](https://en.wikipedia.org/wiki/List_of_computer_algebra_systems)
-
-- [Functional reactive programming](https://en.wikipedia.org/wiki/Functional_reactive_programming)
-
-- [Rete algorithm](https://en.wikipedia.org/wiki/Rete_algorithm)
-
-- [Plant (control theory)](https://en.wikipedia.org/wiki/Plant_(control_theory))
-
-- [Truth maintenance systems](https://en.wikipedia.org/wiki/Reason_maintenance)
-
+More complex examples to come.
 
 ## License
 
