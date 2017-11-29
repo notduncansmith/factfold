@@ -1,26 +1,28 @@
 (ns factfold.core-test
   (:require [clojure.test :refer :all]
-            [factfold.model :as model]))
+            [factfold.core :refer [evaluate]]))
 
 ; This file will need to be refactored as tests grow
+
+(defn latest-value [k] #(or (get %2 k) (get % k)))
 
 (def test-facts
   [{:first-name "Emmet" :last-name "Smith" :lives-on "Earth"}
    {:lives-on "Mars"}])
 
 (def test-model
-  [{:first-name (model/latest-value :first-name)
-    :last-name (model/latest-value :last-name)
-    :lives-on (model/latest-value :lives-on)
+  [{:first-name (latest-value :first-name)
+    :last-name (latest-value :last-name)
+    :lives-on (latest-value :lives-on)
     :original-planet
       (fn [case fact]
         (or (case :original-planet) (fact :lives-on)))}
 
    {:full-name
-    (fn [case fact]
-      (str (case :first-name) " " (case :last-name)))}])
+      (fn [case fact]
+        (str (case :first-name) " " (case :last-name)))}])
 
-(def expected-case-values
+(def expected-values
   {:first-name "Emmet"
    :last-name "Smith"
    :full-name "Emmet Smith"
@@ -29,5 +31,5 @@
 
 (deftest model-application
   (testing "Basic model application works"
-    (let [actual (model/apply-model test-model {} test-facts)]
-      (is (= actual expected-case-values)))))
+    (let [actual (reduce (partial evaluate test-model) {} test-facts)]
+      (is (= actual expected-values)))))
