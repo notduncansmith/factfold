@@ -6,7 +6,7 @@
 >
 > Kenneth E. Iverson, 1979
 
-Factfold is a Clojure library that makes it easier to write organized, predictable, parallelizable code. It is a reference implementation of a portable API that encourages data-oriented program design by composing behaviors with structured [meta-circular evaluation](https://en.wikipedia.org/wiki/Meta-circular_evaluator).
+Factfold is a Clojure library that makes it easier to write organized, predictable, parallelizable code. It is a reference implementation of a portable API that encourages data-oriented program design by composing behaviors with structured [meta-circular evaluation](https://en.wikipedia.org/wiki/Meta-circular_evaluator). This API is essentially the computational Curry-Howard interpretation of the [(sychronous) calculus of resources and processes](https://en.wikipedia.org/wiki/Bunched_logic#Resources_and_Processes).
 
 ## A brief note on data and behavior
 
