@@ -1,4 +1,4 @@
-# Factfold
+# Factfold - Design as data
 
 [![Clojars Project](https://img.shields.io/clojars/v/factfold.svg)](https://clojars.org/factfold)
 
@@ -6,25 +6,23 @@
 >
 > Kenneth E. Iverson, 1979
 
-Factfold is a code orchestration library that makes it easier to write maintainable software.
+Factfold is a library that makes it easier to write organized, predictable, parallelizable code. It is a Clojure reference implementation for a portable [self-interpreter](https://en.wikipedia.org/wiki/Meta-circular_evaluator) or [meta-circular evaluator](https://mitpress.mit.edu/sicp/full-text/book/book-Z-H-26.html#%25_sec_4.1) whose API encourages data-oriented program design.
 
-It's also an embedded database, complex event processor, rules/inference engine, computer algebra system, monadic application state container, computational modeling layer, virtual universal Turing machine, or simply "interpreter", depending on your persuasion.
+## A brief note on data and behavior
 
-## Rationale
+The language of program behavior is at the lowest level defined, and consequently constrained, to and by each individual programming environment's syntax, grammar, and runtime implementation. All we have been able to build atop this are "design patterns" and "best practices", both of which require years of dedicated practice to apply correctly.
 
-All programs are interpreters, and thus all programming is some level of metaprogramming. This hints at an extreme degree of [redundancy](https://en.wikipedia.org/wiki/Greenspun's_tenth_rule) in the practice of software development, turning tweet-sized concepts into pages of code.
+For discussing types of relationships between *data* in a program, we use the language of "data structures". Borrowed from mathematics, this language is shared among all programmers and by implicitly or explicitly underlying any discussion of "software architecture" or "program design", transcends it altogether.
 
-This project is an attempt to alleviate some of this redundancy. It is a **hosted interpreter** which, rather than taking strings as input, evaluates host data structures which describe in a flexibly executable way the structure of complex programs in the host language. In effect, it is a portable and disposable metaprogramming environment that discourages logic errors by design.
+If a data structure is well-understood, a faithful implementation will offer few surprises, and its performance can be reasoned about fairly strongly before a line of code is written.
 
-Lisps demonstrate the power of treating code and its evaluation as data, born of the need to elegantly express complicated things to a machine. Most programmers will never use a Lisp, but that oughtn't be an excuse for producing bloated code. Inspired by the tools that made humbling levels of complexity managable, Factfold aims to make anything less complex absolutely trivial. The hope is that this [rather small reference implementation](src/factfold/core.cljc) will inspire ports (like [this](https://github.com/notduncansmith/factjs) pure-Javascript one), and that we may see some standardization of **higher-order software models**.
+By restricting the design of software to the description of data structures, and its development to their faithful implementation, we eliminate much unnecessary indirection, ambiguity, and complexity from both.
 
-Complex programs are those with multiple data structures who derive their values from each other, aka concurrent [random access machines](https://en.wikipedia.org/wiki/Random-access_machine). In complex programs today, the instructions for these heterogeneous machines are blended together into a mess of indirect access, leading to unnecessarily long seek times at best and tedious-to-debug errors on average.
+## Whither Factfold?
 
-Factfold encourages you to separate and name these concurrent subprocesses (with clear relationships and no shared responsibilities), leading to less "essay" code and more "well-groomed Wikipedia entry" code - navigably structured, recursively skimmable, appropriately hyperlinked, and thus instantly accessible to anyone who can read.
+If the design of a program is a labeled, dependency-ordered list of data structures, then Factfold allows you to directly embed your program design as a data structure.
 
-## How does it work
-
-Factfold processes data by applying **models** to **facts**† in chronological order. Models associate **property** names with functions to compute their values. Grouping model properties into **orders** makes their logical dependencies clear to human readers, and provides a natural concurrency barrier. Each property's value is computed from a snapshot of the current state and a new datum.
+Factfold processes data by applying **models** to **facts**† in chronological order. Models associate **property** names with functions to compute their values. Grouping model properties into **orders** makes their logical dependencies clear to human readers, and provides an obvious concurrency barrier. Each property's value is computed from a snapshot of the current state and a new datum.
 
 Thanks to Clojure's efficient immutable data structures, we can maintain as many copies of the state as there are properties to compute while only storing the changes they make.
 
@@ -35,16 +33,19 @@ Thanks to Clojure's efficient immutable data structures, we can maintain as many
 This model's single first-order property, `:subject`, has a constant value of `"world"`. The model also has a second-order property, `:greeting`, which depends on `:subject`.
 
 ```clj
+(require '[factfold.core :refer [evaluate]])
+
 (def model
   [{:subject (fn [state fact] "world")}
    {:greeting (fn [s f] (str "hello " (or (f :subject) (s :subject)) "!"))}])
+
+(evaluate model {}) ; {:subject "world" :greeting "hello world!"}
+(evaluate model {:subject "Github"}) ; {:subject "world" :greeting "hello Github!"}
 ```
 
 This model encodes the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) function:
 
 ```clj
-(require '[factfold.core :refer [evaluate]])
-
 (defn brot
   [ctx]
   (evaluate
