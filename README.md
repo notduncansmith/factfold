@@ -10,7 +10,7 @@ Factfold is a Clojure library that makes it easier to write organized, predictab
 
 ## A brief note on data and behavior
 
-The language of program behavior is at the lowest level defined, and consequently constrained, to and by each individual programming environment's syntax, grammar, and runtime implementation. Our language for discussing *types relationships between behaviors* is that of "design patterns" and "best practices", both of which require years of dedicated practice to interpret correctly.
+The language of program behavior is at the lowest level defined, and consequently constrained, to and by each individual programming environment's syntax, grammar, and runtime implementation. Our language for discussing *types of relationships between behaviors* is that of "design patterns" and "best practices", both of which require years of dedicated practice to interpret correctly.
 
 For discussing *types of relationships between data* in a program, we use the language of "data structures". Borrowed from and comingled with mathematics, this language is shared among all programmers and by implicitly or explicitly underlying any discussion of "software architecture" or "program design", transcends it altogether.
 
