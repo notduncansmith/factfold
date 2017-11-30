@@ -87,9 +87,9 @@ user=> (process-request! {:path "/foo"})
 {:counts {"/foo" 1}}
 ```
 
-This pairs well with [`[factual/durable-queue "0.1.5"]`](https://github.com/Factual/durable-queue) and Clojure's [agents](https://clojure.org/reference/agents).
+This pairs well with [`[factual/durable-queue "0.1.5"]`](https://github.com/Factual/durable-queue) and Clojure's [agents](https://clojure.org/reference/agents). For ideas about persistence for these atoms or agents, consider the [hitchiker tree](https://github.com/datacrypt-project/hitchhiker-tree) library.
 
-More complex examples to come.
+More examples to come.
 
 ## License
 
