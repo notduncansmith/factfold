@@ -8,7 +8,8 @@
       (reduce-kv
         (fn [order-values property-name property-formula]
           (assoc order-values property-name
-            (if (= (type property-formula) clojure.lang.PersistentVector)
+            (if (= (type property-formula)  #?(:clj clojure.lang.PersistentVector
+                                               :cljs cljs.core/PersistentVector))
               (evaluate property-formula (get state property-name) fact)
               (property-formula state fact))))
         new-state property-map))
