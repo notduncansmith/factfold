@@ -10,8 +10,8 @@
           (assoc order-values property-name
             (if (= (type property-formula)  #?(:clj clojure.lang.PersistentVector
                                                :cljs cljs.core/PersistentVector))
-              (evaluate property-formula (get state property-name) fact)
-              (property-formula state fact))))
+              (evaluate property-formula (get new-state property-name) fact)
+              (property-formula new-state fact))))
         new-state property-map))
     state model))
 
