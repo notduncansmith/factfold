@@ -6,20 +6,22 @@
 >
 > Kenneth E. Iverson, 1979
 
-Factfold is a Clojure library that makes it easier to write organized, predictable, composable, parallelizable code, *without a ton of boilerplate*. It is a reference implementation of a language-portable API based on the [synchronous calculus of resources and processes](https://en.wikipedia.org/wiki/Bunched_logic); in other words, it offers a way to build programs as tiers of derived data structures represented by the reduce functions that construct them.
+Factfold is a Clojure library that makes it easier to write organized, predictable, composable, parallelizable code, *without a ton of boilerplate*. It is a reference implementation of what aims to one day be a language-portable API. It offers a way to build programs as tiers of derived data structures represented by the functions that construct them from streams of input.
 
 ## How it works
 
-Factfold processes data by applying a **model** to **facts** in chronological order, keeping **state** between facts. Models associate **property** names with functions to compute their values. Grouping model properties into **orders** makes their logical dependencies clear to human readers, and specifies concurrency barriers. Each property's value is computed from the current state and a new datum.
+Factfold processes data by applying a **model** to **facts** in chronological order, keeping **state** between facts. Models associate **property** names with functions to compute their values. Grouping model properties into **orders** makes their logical dependencies clear to human readers, and specifies concurrency barriers. Each property's value is computed from the current state and a new fact.
 
-This simple example model's single first-order property, `:subject`, has a constant value of `"world"`. The model also has a second-order property, `:greeting`, which depends on `:subject`.
+A model is represented as a vector of maps, which contain property names and functions. A state is represented as a map of all property names to their function's most recent return value. A fact is represented as a map with no predefined structure.
+
+This example model has a single first-order property, `:subject`. This property has a constant value of `"world"`. The model also has a second-order property, `:greeting`, which depends on `:subject`.
 
 ```clj
 (require '[factfold.core :refer [evaluate]])
 
 (def model
   [{:subject (fn [state fact] "world")}
-   {:greeting (fn [s f] (str "Hello " (or (:subject f) (:subject s)) "!"))}])
+   {:greeting (fn [state fact] (str "Hello " (or (:subject fact) (:subject state)) "!"))}])
 
 (evaluate model {} nil) ; {:subject "world" :greeting "Hello world!"}
 (evaluate model {} {:subject "Github"}) ; {:subject "world" :greeting "Hello Github!"}
