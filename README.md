@@ -6,13 +6,13 @@
 >
 > Kenneth E. Iverson, 1979
 
-Factfold is a Clojure library that makes it easier to write organized, predictable, composable, parallelizable code, *without a ton of boilerplate*. It is a reference implementation of what aims to one day be a language-portable API. It offers a way to build programs as tiers of derived data structures represented by the functions that construct them from streams of input.
+Factfold is a Clojure library that makes it easier to write organized, predictable, composable, parallelizable code, *without a ton of boilerplate*. It is a reference implementation of what aims to one day be a language-portable API. It offers a way to build programs as tiers of derived data structures represented by the functions that construct them from streams of input. While it bears a strong resemblance to JavaScript's Redux library, Factfold attempts to present a more data-oriented API. It's also written in Clojure, which is often more suitable than JS for processing medium-large volumes of data.
 
 ## How it works
 
-Factfold processes data by applying a **model** to **facts** in chronological order, keeping **state** between facts. Models associate **property** names with functions to compute their values. Grouping model properties into **orders** makes their logical dependencies clear to human readers, and specifies concurrency barriers. Each property's value is computed from the current state and a new fact.
+Factfold computes **state** by applying a **model** to **facts** in chronological order, retaining state between facts. Models associate **property** names with functions to compute their values. Grouping model properties into **orders** makes their logical dependencies clear to human readers, and provides natural concurrency boundaries. Each property's value is computed from the current state and the newest fact.
 
-A model is represented as a vector of maps, which contain property names and functions. A state is represented as a map of all property names to their function's most recent return value. A fact is represented as a map with no predefined structure.
+A model is represented as a vector of maps, which associate property names with functions. A state is represented as a map of all property names to their function's most recent return value. A fact is represented as a map with no predefined structure.
 
 This example model has a single first-order property, `:subject`. This property has a constant value of `"world"`. The model also has a second-order property, `:greeting`, which depends on `:subject`.
 
