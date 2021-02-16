@@ -20,7 +20,7 @@ This example model has a single first-order property, `:subject`. This property 
 (require '[factfold.core :refer [evaluate]])
 
 (def model
-  [{:subject (fn [state fact] "world")}
+  [{:subject (fn [state fact] (or (:subject fact) "world"))}
    {:greeting (fn [state fact] (str "Hello " (or (:subject fact) (:subject state)) "!"))}])
 
 (evaluate model {} nil) ; {:subject "world" :greeting "Hello world!"}
